@@ -79,6 +79,30 @@ export default function VSLPage() {
         }}
       />
 
+      <Script
+        id="iframe-loader"
+        strategy="afterInteractive"
+        dangerouslySetInnerHTML={{
+          __html: `
+            // Load the iframe source after the page loads
+            function loadIframe() {
+              var iframe = document.getElementById('ifr_685f7df11360073ec94270cb');
+              if (iframe && iframe.src === 'about:blank') {
+                var search = window.location.search || '?';
+                var vl = encodeURIComponent(window.location.href);
+                iframe.src = 'https://scripts.converteai.net/7e36cdf6-8f2d-4adf-9c73-eb7c42755be9/players/685f7df11360073ec94270cb/v4/embed.html' + search + '&vl=' + vl;
+              }
+            }
+            
+            if (document.readyState === 'loading') {
+              document.addEventListener('DOMContentLoaded', loadIframe);
+            } else {
+              loadIframe();
+            }
+          `,
+        }}
+      />
+
       <div className="min-h-screen bg-white">
         <div className="container mx-auto px-3 md:px-4 py-4 md:py-8 max-w-4xl">
           {/* Main Headline */}
@@ -232,24 +256,6 @@ export default function VSLPage() {
           </div>
         </div>
       </div>
-
-      <Script
-        id="iframe-loader"
-        strategy="afterInteractive"
-        dangerouslySetInnerHTML={{
-          __html: `
-            // Load the iframe source after the page loads
-            window.addEventListener('load', function() {
-              var iframe = document.getElementById('ifr_685f7df11360073ec94270cb');
-              if (iframe && iframe.src === 'about:blank') {
-                var search = window.location.search || '?';
-                var vl = encodeURIComponent(window.location.href);
-                iframe.src = 'https://scripts.converteai.net/7e36cdf6-8f2d-4adf-9c73-eb7c42755be9/players/685f7df11360073ec94270cb/v4/embed.html' + search + '&vl=' + vl;
-              }
-            });
-          `,
-        }}
-      />
     </>
   )
 }
