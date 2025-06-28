@@ -4,26 +4,23 @@ export default function VSLPage() {
   return (
     <>
       <Script
-        id="vturb-player-script"
+        id="vturb-sdk-script"
         strategy="afterInteractive"
-        onLoad={() => {
-          console.log("Video player script loaded successfully")
-        }}
-        onError={(e) => {
-          console.error("Video player script failed to load:", e)
-        }}
         dangerouslySetInnerHTML={{
           __html: `
             try {
               var s = document.createElement("script");
-              s.src = "https://scripts.converteai.net/7e36cdf6-8f2d-4adf-9c73-eb7c42755be9/players/685f7df11360073ec94270cb/v4/player.js";
+              s.src = "https://scripts.converteai.net/lib/js/smartplayer-wc/v4/sdk.js";
               s.async = true;
               s.onerror = function() {
-                console.error('Failed to load video player script');
+                console.error('Failed to load video SDK script');
+              };
+              s.onload = function() {
+                console.log('Video SDK loaded successfully');
               };
               document.head.appendChild(s);
             } catch (error) {
-              console.error('Error loading video script:', error);
+              console.error('Error loading video SDK:', error);
             }
           `,
         }}
@@ -38,32 +35,39 @@ export default function VSLPage() {
             var delaySeconds = 1860;
             
             function initializeVideoDelay() {
-              var player = document.querySelector("vturb-smartplayer");
+              // Aguardar o iframe carregar completamente
+              var iframe = document.getElementById('ifr_685f7df11360073ec94270cb');
               
-              if (player) {
-                player.addEventListener("player:ready", function() {
-                  console.log("Player ready, setting up delay for CTA");
-                  try {
-                    player.displayHiddenElements(delaySeconds, [".cta-esconder"], {
-                      persist: true
+              if (iframe) {
+                iframe.addEventListener('load', function() {
+                  console.log("Video iframe loaded, setting up delay for CTA");
+                  
+                  // Usar setTimeout como fallback para mostrar CTA após 31 minutos
+                  setTimeout(function() {
+                    var ctaElements = document.querySelectorAll('.cta-esconder');
+                    ctaElements.forEach(function(el) {
+                      el.style.display = 'block';
+                      el.classList.remove('cta-esconder');
+                      el.style.animation = 'fadeIn 0.5s ease-in';
                     });
-                  } catch (error) {
-                    console.error("Error setting up CTA delay:", error);
-                    // Fallback: mostrar CTA após 31 minutos mesmo se houver erro
-                    setTimeout(function() {
-                      var ctaElements = document.querySelectorAll('.cta-esconder');
-                      ctaElements.forEach(function(el) {
-                        el.style.display = 'block';
-                        el.classList.remove('cta-esconder');
-                      });
-                    }, delaySeconds * 1000);
-                  }
+                    console.log("CTA elements displayed after delay");
+                  }, delaySeconds * 1000);
                 });
               } else {
-                // Retry after 1 second if player not found
+                // Retry after 1 second if iframe not found
                 setTimeout(initializeVideoDelay, 1000);
               }
             }
+            
+            // Add CSS for fade in animation
+            var style = document.createElement('style');
+            style.textContent = \`
+              @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(20px); }
+                to { opacity: 1; transform: translateY(0); }
+              }
+            \`;
+            document.head.appendChild(style);
             
             // Initialize when DOM is ready
             if (document.readyState === 'loading') {
@@ -97,16 +101,25 @@ export default function VSLPage() {
           <div className="flex justify-center mb-8 md:mb-12 px-2">
             <div className="w-full max-w-3xl">
               <div className="relative bg-black rounded-lg overflow-hidden shadow-xl md:shadow-2xl">
-                <div className="aspect-video">
-                  <div id="vturb-smartplayer-container" className="w-full h-full flex items-center justify-center">
-                    <vturb-smartplayer
-                      id="vid-685f7df11360073ec94270cb"
+                <div id="ifr_685f7df11360073ec94270cb_wrapper" style={{ margin: "0 auto", width: "100%" }}>
+                  <div
+                    style={{ padding: "56.25% 0 0 0", position: "relative" }}
+                    id="ifr_685f7df11360073ec94270cb_aspect"
+                  >
+                    <iframe
+                      frameBorder="0"
+                      allowFullScreen
+                      src="about:blank"
+                      id="ifr_685f7df11360073ec94270cb"
                       style={{
-                        display: "block",
-                        margin: "0 auto",
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
                         width: "100%",
                         height: "100%",
+                        borderRadius: "8px",
                       }}
+                      referrerPolicy="origin"
                     />
                   </div>
                 </div>
@@ -219,6 +232,24 @@ export default function VSLPage() {
           </div>
         </div>
       </div>
+
+      <Script
+        id="iframe-loader"
+        strategy="afterInteractive"
+        dangerouslySetInnerHTML={{
+          __html: `
+            // Load the iframe source after the page loads
+            window.addEventListener('load', function() {
+              var iframe = document.getElementById('ifr_685f7df11360073ec94270cb');
+              if (iframe && iframe.src === 'about:blank') {
+                var search = window.location.search || '?';
+                var vl = encodeURIComponent(window.location.href);
+                iframe.src = 'https://scripts.converteai.net/7e36cdf6-8f2d-4adf-9c73-eb7c42755be9/players/685f7df11360073ec94270cb/v4/embed.html' + search + '&vl=' + vl;
+              }
+            });
+          `,
+        }}
+      />
     </>
   )
 }
