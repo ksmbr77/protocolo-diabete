@@ -4,14 +4,74 @@ export default function VSLPage() {
   return (
     <>
       <Script
+        id="vturb-player-script"
+        strategy="afterInteractive"
+        onLoad={() => {
+          console.log("Video player script loaded successfully")
+        }}
+        onError={(e) => {
+          console.error("Video player script failed to load:", e)
+        }}
+        dangerouslySetInnerHTML={{
+          __html: `
+            try {
+              var s = document.createElement("script");
+              s.src = "https://scripts.converteai.net/7e36cdf6-8f2d-4adf-9c73-eb7c42755be9/players/685f7df11360073ec94270cb/v4/player.js";
+              s.async = true;
+              s.onerror = function() {
+                console.error('Failed to load video player script');
+              };
+              document.head.appendChild(s);
+            } catch (error) {
+              console.error('Error loading video script:', error);
+            }
+          `,
+        }}
+      />
+
+      <Script
+        id="video-cta-delay"
         strategy="afterInteractive"
         dangerouslySetInnerHTML={{
           __html: `
-      var s=document.createElement("script"); 
-      s.src="https://scripts.converteai.net/7e36cdf6-8f2d-4adf-9c73-eb7c42755be9/players/685f7df11360073ec94270cb/v4/player.js"; 
-      s.async=!0;
-      document.head.appendChild(s);
-    `,
+            // O botão de compra aparecerá aos 31 minutos (1860 segundos)
+            var delaySeconds = 1860;
+            
+            function initializeVideoDelay() {
+              var player = document.querySelector("vturb-smartplayer");
+              
+              if (player) {
+                player.addEventListener("player:ready", function() {
+                  console.log("Player ready, setting up delay for CTA");
+                  try {
+                    player.displayHiddenElements(delaySeconds, [".cta-esconder"], {
+                      persist: true
+                    });
+                  } catch (error) {
+                    console.error("Error setting up CTA delay:", error);
+                    // Fallback: mostrar CTA após 31 minutos mesmo se houver erro
+                    setTimeout(function() {
+                      var ctaElements = document.querySelectorAll('.cta-esconder');
+                      ctaElements.forEach(function(el) {
+                        el.style.display = 'block';
+                        el.classList.remove('cta-esconder');
+                      });
+                    }, delaySeconds * 1000);
+                  }
+                });
+              } else {
+                // Retry after 1 second if player not found
+                setTimeout(initializeVideoDelay, 1000);
+              }
+            }
+            
+            // Initialize when DOM is ready
+            if (document.readyState === 'loading') {
+              document.addEventListener('DOMContentLoaded', initializeVideoDelay);
+            } else {
+              initializeVideoDelay();
+            }
+          `,
         }}
       />
 
@@ -38,21 +98,91 @@ export default function VSLPage() {
             <div className="w-full max-w-3xl">
               <div className="relative bg-black rounded-lg overflow-hidden shadow-xl md:shadow-2xl">
                 <div className="aspect-video">
-                  <vturb-smartplayer
-                    id="vid-685f7df11360073ec94270cb"
-                    style={{
-                      display: "block",
-                      margin: "0 auto",
-                      width: "100%",
-                      height: "100%",
-                    }}
-                  />
+                  <div id="vturb-smartplayer-container" className="w-full h-full flex items-center justify-center">
+                    <vturb-smartplayer
+                      id="vid-685f7df11360073ec94270cb"
+                      style={{
+                        display: "block",
+                        margin: "0 auto",
+                        width: "100%",
+                        height: "100%",
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Additional Content */}
+          {/* CTA Section - Hidden initially, shown after 31 minutes */}
+          <div className="cta-esconder" style={{ display: "none" }}>
+            <div className="text-center mb-8 md:mb-12 px-2">
+              <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl p-6 md:p-8 shadow-2xl max-w-2xl mx-auto">
+                <div className="text-white">
+                  <h2 className="text-2xl md:text-3xl font-bold mb-4">
+                    ¡Aprovecha esta oportunidad única ahora mismo!
+                  </h2>
+                  <p className="text-lg md:text-xl mb-6 opacity-90">
+                    Acceso exclusivo al método completo por tiempo limitado
+                  </p>
+
+                  <a href="URL_DO_SEU_CHECKOUT" className="inline-block w-full md:w-auto">
+                    <button className="w-full md:w-auto bg-yellow-400 hover:bg-yellow-500 text-black font-bold text-xl md:text-2xl py-4 px-8 md:px-12 rounded-xl shadow-lg transform hover:scale-105 transition-all duration-300 border-4 border-yellow-300">
+                      🔥 ¡QUIERO COMPRAR AHORA! 🔥
+                    </button>
+                  </a>
+
+                  <div className="mt-6 flex flex-col md:flex-row items-center justify-center gap-4 text-sm">
+                    <div className="flex items-center gap-2">
+                      <span className="text-green-200">✓</span>
+                      <span>Garantía de 60 días</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-green-200">✓</span>
+                      <span>Acceso inmediato</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-green-200">✓</span>
+                      <span>100% seguro</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Urgency Section */}
+            <div className="text-center mb-8 px-2">
+              <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4 md:p-6 max-w-xl mx-auto">
+                <div className="text-red-800">
+                  <h3 className="font-bold text-lg md:text-xl mb-2">⚠️ OFERTA POR TIEMPO LIMITADO</h3>
+                  <p className="text-sm md:text-base">
+                    Esta página se cerrará automáticamente en <span className="font-bold">24 horas</span>. No pierdas
+                    esta oportunidad única.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Testimonial Section */}
+            <div className="text-center mb-8 px-2">
+              <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 max-w-2xl mx-auto">
+                <div className="flex flex-col md:flex-row items-center gap-4">
+                  <div className="w-16 h-16 bg-blue-200 rounded-full flex items-center justify-center text-2xl">
+                    👨‍⚕️
+                  </div>
+                  <div className="text-left">
+                    <p className="text-blue-800 italic mb-2">
+                      "He visto resultados increíbles en mis pacientes que siguen este protocolo. Es una alternativa
+                      natural muy efectiva."
+                    </p>
+                    <p className="text-blue-600 font-semibold text-sm">- Dr. Carlos Mendoza, Endocrinólogo</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* University References */}
           <div className="text-center space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mt-8 md:mt-12 px-2">
               <div className="text-center p-4 md:p-6 bg-blue-50 rounded-lg border border-blue-100">
